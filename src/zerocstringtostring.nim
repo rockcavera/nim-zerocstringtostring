@@ -17,7 +17,7 @@ proc zeroToStringImpl(cstr: cstring, len: int, nimstr: var FakeNimStringV2) {.ra
   else:
     let
       pucstr = cast[uint](unsafeAddr cstr[0])
-      puFakePayload = puCstr - nimStrPayloadBaseSize
+      puFakePayload = pucstr - nimStrPayloadBaseSize
 
     nimstr = FakeNimStringV2(len: len, p: cast[pointer](puFakePayload))
 
@@ -28,8 +28,11 @@ proc zeroToString*(cstr: cstring): string {.noinit, inline, raises: [].} =
   let str = unsafeAddr result
   zeroToStringImpl(cstr, len, cast[ptr FakeNimStringV2](str)[])
 
-proc zeroNullify*(nimstr: var FakeNimStringV2) {.inline, raises: [].} =
+proc zeroNullify(nimstr: var FakeNimStringV2) {.inline, raises: [].} =
   nimstr = FakeNimStringV2(len: 0, p: nil)
+
+template zeroNullify*(str: string) =
+  zeroNullify(cast[ptr FakeNimStringV2](unsafeAddr str)[])
 
 template zeroToString*(cstr: cstring, identifier: untyped) =
   let identifier {.noinit.} = zeroToString(cstr)
